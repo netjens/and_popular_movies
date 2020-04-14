@@ -1,45 +1,60 @@
 package com.example.popularmovies;
 
+import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
-class MovieListAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter {
+import com.squareup.picasso.Picasso;
+
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.List;
+
+class MovieListAdapter extends ArrayAdapter<Movie> {
+    private static String BASE_URL = "http://image.tmdb.org/t/p/w185/";
+
+    public MovieListAdapter(Context context ){
+        super(context,0,new ArrayList<Movie>());
+    }
+
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
+    public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 
-        LayoutInflater inflater = LayoutInflater.from(context);
-        boolean shouldAttachToParentImmediately = false;
+        Movie movie = getItem(position);
 
-        View view = inflater.inflate(R.layout.movie_list_item, parent, shouldAttachToParentImmediately);
-        MovieItemViewHolder viewHolder = new MovieItemViewHolder(view);
-
-        return viewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-
-    }
-
-    @Override
-    public int getItemCount() {
-        return 0;
-    }
-
-
-    class MovieItemViewHolder extends RecyclerView.ViewHolder{
-        public MovieItemViewHolder(View itemView){
-            super(itemView);
-
+        // Adapters recycle views to AdapterViews.
+        // If this is a new View object we're getting, then inflate the layout.
+        // If not, this view already has the layout inflated from a previous call to getView,
+        // and we modify the View widgets as usual.
+        if (convertView == null) {
+            convertView = LayoutInflater.from(getContext()).inflate(
+                    R.layout.movie_list_item, parent, false);
         }
 
+        ImageView movieImage = (ImageView) convertView.findViewById(R.id.movie_image);
+        Picasso.get().setLoggingEnabled(true);
+        Picasso.get().load("https://image.tmdb.org/t/p/w185"+movie.getPosterImageId()).into(movieImage);
+        TextView movieTitle = convertView.findViewById(R.id.tv_movie_title);
+        movieTitle.setText(movie.getTitle());
+
+
+
+        return convertView;
+
+
+
     }
+
 }

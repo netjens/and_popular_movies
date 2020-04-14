@@ -30,29 +30,33 @@ import javax.net.ssl.HttpsURLConnection;
  * These utilities will be used to communicate with the network.
  */
 public class NetworkUtils {
+    public static String MOVIEDB_API_KEY = "ed1e27120e1394eb9dc0809cc4621160";
+
 
     final static String MOVIEDB_BASE_URL =
-            "http://api.themoviedb.org/3/movie/";
+            "https://api.themoviedb.org/3/movie/";
 
-    final static String PARAM_QUERY = "q";
+    public enum MovieDBQueryType{
+        TOP_RATED("top_rated"),
+        MOST_POPUAR("popular");
+        private String value;
+        private MovieDBQueryType(String queryType) {
+            this.value = queryType;
+        }
 
-    /*
-     * The sort field. One of stars, forks, or updated.
-     * Default: results are sorted by best match if no field is specified.
-     */
-    final static String PARAM_SORT = "sort";
-    final static String sortBy = "stars";
+        public String getValue() {
+            return value;
+        }
+    }
 
     /**
-     * Builds the URL used to query GitHub.
+     * Builds the URL used to query movieDB.
      *
-     * @param githubSearchQuery The keyword that will be queried for.
-     * @return The URL to use to query the GitHub server.
      */
-    /**public static URL buildUrl(String githubSearchQuery) {
-        Uri builtUri = Uri.parse(GITHUB_BASE_URL).buildUpon()
-                .appendQueryParameter(PARAM_QUERY, githubSearchQuery)
-                .appendQueryParameter(PARAM_SORT, sortBy)
+    public static URL buildUrl(MovieDBQueryType queryType) {
+        Uri builtUri = Uri.parse(MOVIEDB_BASE_URL).buildUpon()
+                .appendPath(queryType.getValue())
+                .appendQueryParameter("api_key",MOVIEDB_API_KEY)
                 .build();
 
         URL url = null;
@@ -63,7 +67,7 @@ public class NetworkUtils {
         }
 
         return url;
-    }*/
+    }
 
 
 

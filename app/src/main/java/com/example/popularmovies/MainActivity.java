@@ -1,63 +1,116 @@
 package com.example.popularmovies;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.ActionMenuItemView;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
+import android.graphics.BlendModeColorFilter;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.GridView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import timber.log.Timber;
+
+import static android.graphics.Color.GREEN;
+import static android.graphics.Color.RED;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView movieList;
-    private RecyclerView.Adapter movieListAdapter;
-    private RecyclerView.LayoutManager layoutManager;
-    private ProgressBar loadingMoviesIndicator;
 
-    public static String MOVIE_DB_API_KEY = "ed1e27120e1394eb9dc0809cc4621160";
+    MovieListAdapter movieListAdapter;
+
+    private ProgressBar loadingMoviesIndicator;
+    private TextView titleText;
+
+
+    public static String TOP_RATED = "top_rated";
+    public static String MOST_POPULAR = "popular";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        movieList = (RecyclerView) findViewById(R.id.rv_movie_list);
+
         loadingMoviesIndicator = findViewById(R.id.loading_indicator);
 
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        movieList.setHasFixedSize(true);
+        movieListAdapter = new MovieListAdapter(this);
+        GridView gridView = findViewById(R.id.movie_grid);
+        gridView.setAdapter(movieListAdapter);
+        titleText = findViewById(R.id.tv_title);
+        titleText.setText(R.string.title_popular);
+        URL url = NetworkUtils.buildUrl(NetworkUtils.MovieDBQueryType.MOST_POPUAR);
+        new MovieQueryTask(this).execute(url);
 
-        layoutManager = new GridLayoutManager(this,2);
-        movieList.setLayoutManager(layoutManager);
-
-
-        movieListAdapter = new MovieListAdapter();
-        movieList.setAdapter(movieListAdapter);
-
-
-
-
-
-        try {
-            URL url = new URL("https://api.themoviedb.org/3/movie/top_rated?api_key=ed1e27120e1394eb9dc0809cc4621160");
-            new MovieQueryTask().execute(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
     }
 
 
-    public class MovieQueryTask extends AsyncTask<URL, Void, String> {
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.movie_menu, menu);
+        return true;
+    }
 
-        // COMPLETED (26) Override onPreExecute to set the loading indicator to visible
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int itemId = item.getItemId();
+
+        switch (itemId) {
+            /*
+             * When you click the reset menu item, we want to start all over
+             * and display the pretty gradient again. There are a few similar
+             * ways of doing this, with this one being the simplest of those
+             * ways. (in our humble opinion)
+             */
+            case R.id.mi_popularity:
+                URL url = NetworkUtils.buildUrl(NetworkUtils.MovieDBQueryType.MOST_POPUAR);
+                new MovieQueryTask(this).execute(url);
+                titleText.setText(R.string.title_popular);
+
+                return true;
+
+            case R.id.mi_rating:
+                url = NetworkUtils.buildUrl(NetworkUtils.MovieDBQueryType.TOP_RATED);
+                new MovieQueryTask(this).execute(url);
+                titleText.setText(R.string.title_rating);
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public class MovieQueryTask extends AsyncTask<URL, Void, List<Movie>> {
+        private Context context;
+
+        public MovieQueryTask(Context context) {
+            this.context = context;
+        }
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -65,29 +118,40 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String doInBackground(URL... params) {
+        protected List<Movie> doInBackground(URL... params) {
             URL searchUrl = params[0];
             String movieResults = null;
+            List<Movie> movies = new ArrayList<Movie>();
             try {
                 movieResults = NetworkUtils.getResponseFromHttpsUrl(searchUrl);
-            } catch (IOException e) {
-                Log.e("MainActivity",e.getMessage(),e);
+                JSONObject resultAsJson = new JSONObject(movieResults);
+                JSONArray moviesAsJson = resultAsJson.getJSONArray("results");
+                for (int i = 0; i < moviesAsJson.length(); i++) {
+                    JSONObject movieAsJson = moviesAsJson.getJSONObject(i);
+                    movies.add(new Movie(movieAsJson.getInt("id"),
+                            movieAsJson.getString("title"),
+                            movieAsJson.getString("poster_path")));
+                }
+
+            } catch (IOException | JSONException e) {
+                Timber.e(e.getMessage(), e);
             }
-            return movieResults;
+            return movies;
         }
 
         @Override
-        protected void onPostExecute(String movieResults) {
-            // COMPLETED (27) As soon as the loading is complete, hide the loading indicator
+        protected void onPostExecute(List<Movie> movieResults) {
+            //movies.clear();
             loadingMoviesIndicator.setVisibility(View.INVISIBLE);
-            if (movieResults != null && !movieResults.equals("")) {
-                // COMPLETED (17) Call showJsonDataView if we have valid, non-null results
-                //showJsonDataView();
-                //mSearchResultsTextView.setText(githubSearchResults);
-                Log.i("MainActivity",movieResults);
+            if (movieResults != null) {
+                Timber.d("found " + movieResults.size() + " movies");
+                movieListAdapter.clear();
+                movieListAdapter.addAll(movieResults);
+
+
             } else {
                 // COMPLETED (16) Call showErrorMessage if the result is null in onPostExecute
-                Toast.makeText(getParent(),"Error ocurred at query of moviedb",Toast.LENGTH_LONG).show();
+                Toast.makeText(getParent(), "Error ocurred at query of moviedb", Toast.LENGTH_LONG).show();
             }
         }
     }

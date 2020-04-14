@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Popular Movies</string>
+    <string name="movie_poster_image">movie poster image</string>
+    <string name="sort_by_popularity">sort by popularity</string>
+    <string name="sort_by_rating">sort by rating</string>
+    <string name="title_popular">The 20 most popular movies</string>
+    <string name="title_rating">The 20 best rated movies</string>
 </resources>
