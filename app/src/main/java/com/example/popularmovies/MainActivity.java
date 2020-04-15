@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.BlendModeColorFilter;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -27,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
@@ -38,9 +41,10 @@ import timber.log.Timber;
 import static android.graphics.Color.GREEN;
 import static android.graphics.Color.RED;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
 
+    public static final String MOVIE_PARCEL_KEY = "movie_key";
     MovieListAdapter movieListAdapter;
 
     private ProgressBar loadingMoviesIndicator;
@@ -60,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
         movieListAdapter = new MovieListAdapter(this);
         GridView gridView = findViewById(R.id.movie_grid);
         gridView.setAdapter(movieListAdapter);
+        gridView.setOnItemClickListener(this);
         titleText = findViewById(R.id.tv_title);
         titleText.setText(R.string.title_popular);
         URL url = NetworkUtils.buildUrl(NetworkUtils.MovieDBQueryType.MOST_POPUAR);
@@ -103,6 +108,17 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Movie movie = movieListAdapter.getItem(position);
+        Toast.makeText(this,"item " +  movie.getTitle() + " clicked",Toast.LENGTH_LONG).show();
+        Intent movieDetailIntent = new Intent(this,MovieDetailActivity.class);
+        movieDetailIntent.putExtra(MOVIE_PARCEL_KEY, movie);
+        startActivity(movieDetailIntent);
+
+    }
+
 
     public class MovieQueryTask extends AsyncTask<URL, Void, List<Movie>> {
         private Context context;

@@ -21,7 +21,9 @@ import org.w3c.dom.Text;
 import java.util.ArrayList;
 import java.util.List;
 
-class MovieListAdapter extends ArrayAdapter<Movie> {
+import timber.log.Timber;
+
+class MovieListAdapter extends ArrayAdapter<Movie>  {
     private static String BASE_URL = "http://image.tmdb.org/t/p/w185/";
 
     public MovieListAdapter(Context context ){
@@ -51,10 +53,13 @@ class MovieListAdapter extends ArrayAdapter<Movie> {
 
 
 
+
+
         return convertView;
 
 
 
     }
+
 
 }
