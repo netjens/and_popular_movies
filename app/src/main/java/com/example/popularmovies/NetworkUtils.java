@@ -30,7 +30,7 @@ import javax.net.ssl.HttpsURLConnection;
  * These utilities will be used to communicate with the network.
  */
 public class NetworkUtils {
-    public static String MOVIEDB_API_KEY = "ed1e27120e1394eb9dc0809cc4621160";
+    public static String MOVIEDB_API_KEY = "enter your key here";
 
 
     final static String MOVIEDB_BASE_URL =
