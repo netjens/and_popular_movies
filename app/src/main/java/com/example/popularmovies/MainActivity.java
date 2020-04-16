@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Timber.plant(new Timber.DebugTree());
         setContentView(R.layout.activity_main);
 
         loadingMoviesIndicator = findViewById(R.id.loading_indicator);
@@ -112,7 +113,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Movie movie = movieListAdapter.getItem(position);
-        Toast.makeText(this,"item " +  movie.getTitle() + " clicked",Toast.LENGTH_LONG).show();
         Intent movieDetailIntent = new Intent(this,MovieDetailActivity.class);
         movieDetailIntent.putExtra(MOVIE_PARCEL_KEY, movie);
         startActivity(movieDetailIntent);
@@ -146,7 +146,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     JSONObject movieAsJson = moviesAsJson.getJSONObject(i);
                     movies.add(new Movie(movieAsJson.getInt("id"),
                             movieAsJson.getString("title"),
-                            movieAsJson.getString("poster_path")));
+                            movieAsJson.getString("poster_path"),
+                            new Integer(movieAsJson.getString("release_date").substring(0,4)).intValue(),
+                            movieAsJson.getString("vote_average"),
+                            movieAsJson.getString("overview")));
                 }
 
             } catch (IOException | JSONException e) {
